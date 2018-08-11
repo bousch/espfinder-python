@@ -160,7 +160,7 @@ def check_port(host, port):
 
 def getMACfromIP(ipaddr):
   resarr = []
-  if os.name == "posix": 
+  if os.name == "posix":
    line = getoutput("arp -a %s 2> /dev/null" % ipaddr)
    try:
     mac = re.search(r"(([a-f\d]{1,2}\:){5}[a-f\d]{1,2})", line).groups()[0]
@@ -179,8 +179,8 @@ def getMACfromIP(ipaddr):
         mstr = re.search(r"(([a-f\d]{1,2}\-){5}[a-f\d]{1,2})", line).groups()[0]
        except:
         mstr = ""
-   resarr.append(mstr.strip()) 
-   resarr.append("") 
+   resarr.append(mstr.strip())
+   resarr.append("")
   return resarr
 
 def check80(purl):
@@ -191,8 +191,8 @@ def check80(purl):
  except:
   rescode = -1
   if check_espurna(purl):
-   tipus = "ESPurna"     
- if rescode == 0: 
+   tipus = "ESPurna"
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -205,7 +205,7 @@ def check80(purl):
     retdata = ""
    if str(retdata).find("Sonoff-Tasmota")>-1:
     tipus = "Tasmota"
-   elif str(retdata).find("www.letscontrolit.com")>-1: 
+   elif str(retdata).find("www.letscontrolit.com")>-1:
     tipus = "ESPEasy"
    elif str(retdata).find("/cgi-bin/luci")>-1:
     tipus = "OpenWRT"
@@ -214,10 +214,10 @@ def check80(purl):
   else:
    tipus = "HTTP Err:"+str(rescode)
  return tipus
- 
+
 def get_tasmota(purl):
-    
-#0:IP, 1:MAC, 
+
+#0:IP, 1:MAC,
 #3:FriendlyName, 2:Tasmota FW_Ver + Core_Ver, 4:Uptime, 5:ProgramSize/FlashSize, 6: Heap, 7:RSSI, (%), 8:Vcc
  resarr = ['','','','','','','','','']
  rescode = 0
@@ -225,7 +225,7 @@ def get_tasmota(purl):
   content = urllib.request.urlopen("http://"+purl+"/cm?cmnd=status%209", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -251,16 +251,16 @@ def get_tasmota(purl):
   content = urllib.request.urlopen("http://"+purl+"/cm?cmnd=status%202", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
    rescode = -1
   if (rescode == 200):
-   try:   
+   try:
     retdata = content.read()
    except:
-    retdata = ""    
+    retdata = ""
    msg2 = retdata.decode('utf-8')
    if ('{' in msg2):
     list = []
@@ -277,7 +277,7 @@ def get_tasmota(purl):
   content = urllib.request.urlopen("http://"+purl+"/cm?cmnd=status%204", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -286,7 +286,7 @@ def get_tasmota(purl):
    try:
     retdata = content.read()
    except:
-    retdata = ""    
+    retdata = ""
    msg2 = retdata.decode('utf-8')
    if ('{' in msg2):
     list = []
@@ -304,7 +304,7 @@ def get_tasmota(purl):
   content = urllib.request.urlopen("http://"+purl+"/cm?cmnd=status%2011", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -313,7 +313,7 @@ def get_tasmota(purl):
    try:
     retdata = content.read()
    except:
-    retdata = ""    
+    retdata = ""
    msg2 = retdata.decode('utf-8')
    if ('{' in msg2):
     list = []
@@ -327,12 +327,15 @@ def get_tasmota(purl):
       resarr[4] = str(list['StatusSTS']['Uptime'])
       if len(resarr[4]) < 8:
         resarr[4] += "h"
-      resarr[8] = str(list['StatusSTS']['Vcc'])+"V"
+      if 'Vcc' in list['StatusSTS']:
+        resarr[8] = str(list['StatusSTS']['Vcc'])+"V"
+      else:
+        resarr[8] = ""
       resarr[7] = str(list['StatusSTS']['Wifi']['RSSI'])+"%"
  return resarr
 
 def get_espeasy(purl):
-#0:IP, 1:MAC, 
+#0:IP, 1:MAC,
 #3:Unit num, 2:ESPEasy build + Git build, 4:Uptime, 6: Free RAM,
 #Core_Ver into 2, 5:ProgramSize/FlashSize, 7:RSSI, (%)
  resarr = ['','','','','','','','','']
@@ -341,7 +344,7 @@ def get_espeasy(purl):
   content = urllib.request.urlopen("http://"+purl+"/json", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -361,7 +364,7 @@ def get_espeasy(purl):
      list = []
     if (list):
      if list['System']:
-      try:   
+      try:
        resarr[2] = "ESPEasy "+str(list['System']['Build'])+" "+str(list['System']['Git Build'])
        resarr[3] = str(list['System']['Unit'])
        upmin = int(list['System']['Uptime'])
@@ -376,13 +379,13 @@ def get_espeasy(purl):
         resarr[7] = str(wifistren) + "%"
 
       except:
-       pass   
+       pass
  rescode = 0
  try:
   content = urllib.request.urlopen("http://"+purl+"/sysinfo", None, 2)
  except:
   rescode = -1
- if rescode == 0: 
+ if rescode == 0:
   try:
    rescode = content.getcode()
   except:
@@ -397,7 +400,7 @@ def get_espeasy(purl):
    readinfos2 = readinfos2.replace("<TD>","</TD><TD>")
    readinfos2 = readinfos2.replace("<TR></TD>","<TR>")
    readinfos2 = readinfos2.replace("</TD></TD><TD>","</TD><TD>")
-   readinfos2 = readinfos2.replace("</table>","</TD></TR></TABLE>")   
+   readinfos2 = readinfos2.replace("</table>","</TD></TR></TABLE>")
    dataTable = parseTable(readinfos2)
    for item in dataTable:
     tarr = str(item)
@@ -411,22 +414,22 @@ def get_espeasy(purl):
         if wifistren > 100:
          wifistren = 100
         resarr[7] = str(wifistren) + "%"
-    
+
     if (tarr.find("Build")>0 and ((tarr.find("core")>0) or (tarr.find("Core")>0))) or tarr.find("Build:")>0:
        resarr[2] = "ESPEasy " + item[1]
-        
+
     if tarr.find("Flash Chip Real Size")>0 or tarr.find("Flash Size:")>0:
        resarr[5] = item[1]
-            
+
     if tarr.find("Flash IDE mode")>0:
        resarr[5] += " ("+item[1]+")"
 
     if tarr.find("Core Version:")>0:
        resarr[2] += " "+item[1]
-                
+
     if tarr.find("Sketch Size")>0:
        resarr[5] = re.findall(r'\d\d\d kB',item[1])[0] + "/" + resarr[5]
-        
+
  return resarr
 
 def check_espurna(purl): # 23 & 80 open
@@ -439,14 +442,14 @@ def check_espurna(purl): # 23 & 80 open
     wildguess += 1
  if check_port(purl, 23):
     wildguess += 1
- return (wildguess==2)   
+ return (wildguess==2)
 
 def checkMACManuf(macaddr):
- retstr = ""   
+ retstr = ""
  normmac = str(macaddr).upper().replace(":","-").strip()
  normmac = normmac[:8]
  if normmac in macesp:
   retstr = "Espressif"
  elif normmac == "B8-27-EB":
   retstr = "Raspberry"
- return retstr 
+ return retstr
